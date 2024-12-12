@@ -1,5 +1,6 @@
 import 'package:client/core/theme/app_pallete.dart';
 import 'package:client/core/widgets/custom_field.dart';
+import 'package:client/featues/auth/pages/login_page.dart';
 import 'package:client/featues/auth/widgets/auth_gradient_button.dart';
 import 'package:flutter/material.dart';
 
@@ -63,7 +64,14 @@ class _SignupPageState extends State<SignupPage> {
             ),
             const SizedBox(height: 20),
             GestureDetector(
-              onTap: () {},
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const LoginPage(),
+                  ),
+                );
+              },
               child: RichText(
                 text: TextSpan(
                   text: 'Already have an account? ',
