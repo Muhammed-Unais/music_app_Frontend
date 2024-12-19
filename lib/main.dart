@@ -1,5 +1,5 @@
 import 'package:client/core/theme/app_theme.dart';
-import 'package:client/featues/auth/pages/signup_page.dart';
+import 'package:client/featues/auth/view/pages/signup_page.dart';
 import 'package:flutter/material.dart';
 
 void main() {
