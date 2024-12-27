@@ -5,7 +5,7 @@ import 'package:client/featues/auth/view/widgets/auth_gradient_button.dart';
 import 'package:client/featues/auth/view/widgets/loader.dart';
 import 'package:client/featues/auth/view_model/auth_viewmodel.dart';
 import 'package:client/core/widgets/custom_field.dart';
-import 'package:client/featues/home/view/page/home_page.dart';
+import 'package:client/featues/home/view/pages/home_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
