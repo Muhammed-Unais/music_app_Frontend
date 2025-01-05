@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'package:client/core/constants/server_constants.dart';
 import 'package:client/core/failure/failure.dart';
 import 'package:client/core/models/user_model.dart';
@@ -68,7 +69,10 @@ class AuthRemoteRepository {
         ),
       );
 
+      log(response.body.toString());
+
       final resBodyMap = jsonDecode(response.body) as Map<String, dynamic>;
+      log(response.body.toString());
 
       if (response.statusCode != 200) {
         return Left(AppFailure(resBodyMap['detail']));
@@ -80,6 +84,8 @@ class AuthRemoteRepository {
         ),
       );
     } catch (e) {
+      log(e.toString());
+
       return Left(AppFailure(e.toString()));
     }
   }
@@ -105,6 +111,7 @@ class AuthRemoteRepository {
         UserModel.fromMap(resBodyMap).copyWith(token: token),
       );
     } catch (e) {
+      log(e.toString());
       return Left(AppFailure(e.toString()));
     }
   }
