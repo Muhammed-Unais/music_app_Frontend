@@ -3,6 +3,7 @@ import 'package:client/core/theme/app_theme.dart';
 import 'package:client/featues/auth/view/pages/signup_page.dart';
 import 'package:client/featues/auth/view_model/auth_viewmodel.dart';
 import 'package:client/featues/home/view/pages/home_page.dart';
+import 'package:client/featues/home/view/pages/upload_songs_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
