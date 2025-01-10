@@ -14,7 +14,10 @@ class HomePage extends ConsumerStatefulWidget {
 class _HomePageState extends ConsumerState<HomePage> {
   int _selectedIndex = 0;
 
-  final pages = [const SongsPage(), const LibraryPage()];
+  final pages = [
+    const SongsPage(),
+    const LibraryPage(),
+  ];
 
   @override
   Widget build(BuildContext context) {

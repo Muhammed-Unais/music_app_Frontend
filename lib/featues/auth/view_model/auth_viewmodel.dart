@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:client/core/models/user_model.dart';
 import 'package:client/core/provider/current_user_notifier.dart';
 import 'package:client/featues/auth/repo/auth_local_repository.dart';
@@ -78,7 +76,6 @@ class AuthViewmodel extends _$AuthViewmodel {
     state = const AsyncValue.loading();
     final token = _authLocalRepository.getToken();
 
-    log(token.toString());
     if (token != null) {
       try {
         final res =
