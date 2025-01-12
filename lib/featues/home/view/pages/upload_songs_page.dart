@@ -69,7 +69,7 @@ class _UploadSongsPageState extends ConsumerState<UploadSongsPage> {
                   _selectedImage != null &&
                   _selectedAudio != null) {
                 ref.read(homeViewmodelProvider.notifier).uploadSongs(
-                      selctedSongFile: _selectedImage!,
+                      selctedSongFile: _selectedAudio!,
                       selectedThumbnailFile: _selectedImage!,
                       artist: _artistController.text,
                       songName: _songNameController.text,

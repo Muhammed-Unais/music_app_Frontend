@@ -1,6 +1,7 @@
 import 'package:client/core/theme/app_pallete.dart';
 import 'package:client/featues/home/view/pages/library_page.dart';
 import 'package:client/featues/home/view/pages/songs_page.dart';
+import 'package:client/featues/home/view/widgets/music_slab.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -51,7 +52,15 @@ class _HomePageState extends ConsumerState<HomePage> {
           )
         ],
       ),
-      body: pages[_selectedIndex],
+      body: Stack(
+        children: [
+          pages[_selectedIndex],
+          const Positioned(
+            bottom: 0,
+            child: MusicSlab(),
+          )
+        ],
+      ),
     );
   }
 }
