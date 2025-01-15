@@ -1,6 +1,7 @@
 import 'package:client/core/provider/current_song_notifier.dart';
 import 'package:client/core/theme/app_pallete.dart';
 import 'package:client/core/utils/utils.dart';
+import 'package:client/featues/home/view/widgets/music_player.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,99 +11,133 @@ class MusicSlab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final currentSong = ref.watch(currentSongNotifierProvider);
+    final currentSongNotifier = ref.watch(currentSongNotifierProvider);
+    final currentSongNotifierRead =
+        ref.read(currentSongNotifierProvider.notifier);
+    final currentSong = currentSongNotifier?.$1;
+    final isPlaying = currentSongNotifier?.$2;
+
     if (currentSong == null) return const SizedBox();
-    return Stack(
-      children: [
-        Container(
-          height: 66,
-          width: MediaQuery.of(context).size.width - 16,
-          decoration: BoxDecoration(
-            color: hexToColor(currentSong.hex_code),
-            borderRadius: BorderRadius.circular(4),
-          ),
-          padding: const EdgeInsets.all(9),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    width: 48,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(4),
-                      image: DecorationImage(
-                        image: NetworkImage(currentSong.thumbnail_url),
-                        fit: BoxFit.cover,
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(context, MaterialPageRoute(
+          builder: (context) {
+            return MusicPlayer(currentSong: currentSong);
+          },
+        ));
+      },
+      child: Stack(
+        children: [
+          Container(
+            height: 66,
+            width: MediaQuery.of(context).size.width - 16,
+            decoration: BoxDecoration(
+              color: hexToColor(currentSong.hex_code),
+              borderRadius: BorderRadius.circular(4),
+            ),
+            padding: const EdgeInsets.all(9),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: 48,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(4),
+                        image: DecorationImage(
+                          image: NetworkImage(currentSong.thumbnail_url),
+                          fit: BoxFit.cover,
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(
-                    width: 5,
-                  ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        currentSong.song_name,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
+                    const SizedBox(
+                      width: 5,
+                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          currentSong.song_name,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
-                      ),
-                      Text(
-                        currentSong.artist,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          color: Pallete.subtitleText,
+                        Text(
+                          currentSong.artist,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: Pallete.subtitleText,
+                          ),
                         ),
+                      ],
+                    ),
+                  ],
+                ),
+                Row(
+                  children: [
+                    IconButton(
+                      onPressed: () {},
+                      icon: const Icon(CupertinoIcons.heart),
+                    ),
+                    IconButton(
+                      onPressed: currentSongNotifierRead.playPuaseSong,
+                      icon: Icon(
+                        isPlaying == true
+                            ? CupertinoIcons.pause_fill
+                            : CupertinoIcons.play_fill,
                       ),
-                    ],
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  IconButton(
-                    onPressed: () {},
-                    icon: const Icon(CupertinoIcons.heart),
-                  ),
-                  IconButton(
-                    onPressed: () {},
-                    icon: const Icon(CupertinoIcons.play),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-        Positioned(
-          bottom: 0,
-          left: 10,
-          child: Container(
-            height: 4,
-            width: MediaQuery.of(context).size.width - 32,
-            decoration: BoxDecoration(
-              color: Pallete.inactiveSeekColor,
-              borderRadius: BorderRadius.circular(7),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
-        ),
-        Positioned(
-          bottom: 0,
-          left: 10,
-          child: Container(
-            height: 4,
-            width: 200,
-            decoration: BoxDecoration(
-              color: Pallete.whiteColor,
-              borderRadius: BorderRadius.circular(7),
+          StreamBuilder(
+              stream: currentSongNotifierRead.audioPlayer?.positionStream,
+              builder: (context, snapShot) {
+                if (snapShot.connectionState == ConnectionState.waiting) {
+                  return const SizedBox();
+                }
+
+                final position = snapShot.data;
+                final duration = currentSongNotifierRead.audioPlayer?.duration;
+                double silderValue = 0.0;
+                if (position != null && duration != null) {
+                  silderValue =
+                      position.inMilliseconds / duration.inMilliseconds;
+                }
+                return Positioned(
+                  bottom: 0,
+                  left: 10,
+                  child: Container(
+                    height: 4,
+                    width:
+                        silderValue * (MediaQuery.of(context).size.width - 32),
+                    decoration: BoxDecoration(
+                      color: Pallete.whiteColor,
+                      borderRadius: BorderRadius.circular(7),
+                    ),
+                  ),
+                );
+              }),
+          Positioned(
+            bottom: 0,
+            left: 10,
+            child: Container(
+              height: 4,
+              width: MediaQuery.of(context).size.width - 32,
+              decoration: BoxDecoration(
+                color: Pallete.inactiveSeekColor,
+                borderRadius: BorderRadius.circular(7),
+              ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

@@ -7,12 +7,12 @@ part of 'current_song_notifier.dart';
 // **************************************************************************
 
 String _$currentSongNotifierHash() =>
-    r'664cd587955cffb42bc8563bb63f1a1ba64de997';
+    r'64124833060e6f2bbf51526f3f0d9107501470de';
 
 /// See also [CurrentSongNotifier].
 @ProviderFor(CurrentSongNotifier)
-final currentSongNotifierProvider =
-    AutoDisposeNotifierProvider<CurrentSongNotifier, SongModel?>.internal(
+final currentSongNotifierProvider = AutoDisposeNotifierProvider<
+    CurrentSongNotifier, (SongModel, bool)?>.internal(
   CurrentSongNotifier.new,
   name: r'currentSongNotifierProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
@@ -22,6 +22,6 @@ final currentSongNotifierProvider =
   allTransitiveDependencies: null,
 );
 
-typedef _$CurrentSongNotifier = AutoDisposeNotifier<SongModel?>;
+typedef _$CurrentSongNotifier = AutoDisposeNotifier<(SongModel, bool)?>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
