@@ -1,3 +1,6 @@
+import 'dart:developer';
+
+import 'package:client/core/provider/current_song_notifier.dart';
 import 'package:client/core/theme/app_pallete.dart';
 import 'package:client/core/utils/utils.dart';
 import 'package:client/featues/home/model/song_model.dart';
@@ -8,13 +11,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 class MusicPlayer extends ConsumerWidget {
   const MusicPlayer({
     super.key,
-    required this.currentSong,
   });
-
-  final SongModel currentSong;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final currentSongNotifier = ref.read(currentSongNotifierProvider.notifier);
+    final currentSongValues = ref.watch(currentSongNotifierProvider);
+    final currentSong = currentSongValues!.$1;
+    final isPlaying = currentSongValues.$2;
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -33,11 +37,19 @@ class MusicPlayer extends ConsumerWidget {
           backgroundColor: Pallete.transparentColor,
           leading: Transform.translate(
             offset: const Offset(-15, 0),
-            child: Padding(
-              padding: const EdgeInsets.all(10.0),
-              child: Image.asset(
-                "assets/images/pull-down-arrow.png",
-                color: Pallete.whiteColor,
+            child: InkWell(
+              highlightColor: Pallete.transparentColor,
+              focusColor: Pallete.transparentColor,
+              splashColor: Pallete.transparentColor,
+              onTap: () {
+                Navigator.pop(context);
+              },
+              child: Padding(
+                padding: const EdgeInsets.all(10.0),
+                child: Image.asset(
+                  "assets/images/pull-down-arrow.png",
+                  color: Pallete.whiteColor,
+                ),
               ),
             ),
           ),
@@ -46,17 +58,20 @@ class MusicPlayer extends ConsumerWidget {
           children: [
             Expanded(
               flex: 5,
-              child: _songThumbnailImage(),
+              child: _songThumbnailImage(currentSong),
             ),
             Expanded(
               flex: 4,
               child: Column(
                 children: [
-                  _songNameArtAndFavoriteButton(),
+                  _songNameArtAndFavoriteButton(currentSong),
                   const SizedBox(height: 15),
-                  _musicSlider(context),
+                  _musicSlider(context, currentSongNotifier),
                   const SizedBox(height: 15),
-                  _musicControllers(),
+                  _musicControllers(
+                    currentSongNotifier: currentSongNotifier,
+                    isPlaying: isPlaying,
+                  ),
                   const SizedBox(height: 25),
                   _conncectDeviceAndPlayListWidget()
                 ],
@@ -90,7 +105,10 @@ class MusicPlayer extends ConsumerWidget {
     );
   }
 
-  Row _musicControllers() {
+  Row _musicControllers({
+    required CurrentSongNotifier currentSongNotifier,
+    required bool isPlaying,
+  }) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -103,9 +121,11 @@ class MusicPlayer extends ConsumerWidget {
           onTap: () {},
         ),
         IconButton(
-          onPressed: () {},
-          icon: const Icon(
-            CupertinoIcons.play_circle_fill,
+          onPressed: currentSongNotifier.playPuaseSong,
+          icon: Icon(
+            isPlaying
+                ? CupertinoIcons.pause_circle_fill
+                : CupertinoIcons.play_circle_fill,
           ),
           iconSize: 80,
           color: Pallete.whiteColor,
@@ -138,48 +158,74 @@ class MusicPlayer extends ConsumerWidget {
     );
   }
 
-  Column _musicSlider(BuildContext context) {
-    return Column(
-      children: [
-        SliderTheme(
-          data: SliderTheme.of(context).copyWith(
-            activeTrackColor: Pallete.whiteColor,
-            inactiveTrackColor: Pallete.whiteColor.withOpacity(.117),
-            thumbColor: Pallete.whiteColor,
-            trackHeight: 4,
-            overlayShape: SliderComponentShape.noOverlay,
-          ),
-          child: Slider(
-            value: 0.5,
-            onChanged: (value) {},
-          ),
-        ),
-        const Row(
-          children: [
-            Text(
-              '0:05',
-              style: TextStyle(
-                fontSize: 13,
-                color: Pallete.subtitleText,
-                fontWeight: FontWeight.w300,
+  Widget _musicSlider(
+    BuildContext context,
+    CurrentSongNotifier currentSongNotifier,
+  ) {
+    return StatefulBuilder(builder: (context, StateSetter setState) {
+      log("Rebuilding");
+      return StreamBuilder(
+        stream: currentSongNotifier.audioPlayer?.positionStream,
+        builder: (context, snapShot) {
+          if (snapShot.connectionState == ConnectionState.waiting) {
+            return const SizedBox();
+          }
+
+          final position = snapShot.data;
+          final duration = currentSongNotifier.audioPlayer?.duration;
+          double sliderValue = 0.0;
+          if (position != null && duration != null) {
+            sliderValue = position.inMilliseconds / duration.inMilliseconds;
+          }
+          return Column(
+            children: [
+              SliderTheme(
+                data: SliderTheme.of(context).copyWith(
+                  activeTrackColor: Pallete.whiteColor,
+                  inactiveTrackColor: Pallete.whiteColor.withOpacity(.117),
+                  thumbColor: Pallete.whiteColor,
+                  trackHeight: 4,
+                  overlayShape: SliderComponentShape.noOverlay,
+                ),
+                child: Slider(
+                  value: sliderValue,
+                  onChanged: (value) {
+                    setState(() {
+                      sliderValue = value;
+                    });
+                  },
+                  onChangeEnd: currentSongNotifier.seek,
+                ),
               ),
-            ),
-            Expanded(child: SizedBox()),
-            Text(
-              '0:05',
-              style: TextStyle(
-                fontSize: 13,
-                color: Pallete.subtitleText,
-                fontWeight: FontWeight.w300,
-              ),
-            ),
-          ],
-        )
-      ],
-    );
+              Row(
+                children: [
+                  Text(
+                    "${position?.inMinutes ?? ''}:${(position?.inSeconds ?? 0) > 10 ? position?.inSeconds : "0${position?.inSeconds}"}",
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: Pallete.subtitleText,
+                      fontWeight: FontWeight.w300,
+                    ),
+                  ),
+                  const Expanded(child: SizedBox()),
+                  Text(
+                    "${duration?.inMinutes ?? ''}:${(duration?.inSeconds ?? 0) > 10 ? duration?.inSeconds : "0${duration?.inSeconds}"}",
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: Pallete.subtitleText,
+                      fontWeight: FontWeight.w300,
+                    ),
+                  ),
+                ],
+              )
+            ],
+          );
+        },
+      );
+    });
   }
 
-  Widget _songNameArtAndFavoriteButton() {
+  Widget _songNameArtAndFavoriteButton(SongModel? currentSong) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -187,7 +233,7 @@ class MusicPlayer extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              currentSong.song_name,
+              currentSong?.song_name ?? '',
               style: const TextStyle(
                 color: Pallete.whiteColor,
                 fontSize: 24,
@@ -195,7 +241,7 @@ class MusicPlayer extends ConsumerWidget {
               ),
             ),
             Text(
-              currentSong.artist,
+              currentSong?.artist ?? '',
               style: const TextStyle(
                 color: Pallete.subtitleText,
                 fontSize: 16,
@@ -215,18 +261,21 @@ class MusicPlayer extends ConsumerWidget {
     );
   }
 
-  Widget _songThumbnailImage() {
+  Widget _songThumbnailImage(SongModel? currentSong) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 30),
-      child: Container(
-        decoration: BoxDecoration(
-          image: DecorationImage(
-            image: NetworkImage(
-              currentSong.thumbnail_url,
+      child: Hero(
+        tag: 'music-image',
+        child: Container(
+          decoration: BoxDecoration(
+            image: DecorationImage(
+              image: NetworkImage(
+                currentSong?.thumbnail_url ?? '',
+              ),
+              fit: BoxFit.cover,
             ),
-            fit: BoxFit.cover,
+            borderRadius: BorderRadius.circular(16),
           ),
-          borderRadius: BorderRadius.circular(16),
         ),
       ),
     );

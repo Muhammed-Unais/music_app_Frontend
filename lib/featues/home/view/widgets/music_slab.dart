@@ -20,11 +20,32 @@ class MusicSlab extends ConsumerWidget {
     if (currentSong == null) return const SizedBox();
     return GestureDetector(
       onTap: () {
-        Navigator.push(context, MaterialPageRoute(
-          builder: (context) {
-            return MusicPlayer(currentSong: currentSong);
-          },
-        ));
+        Navigator.push(
+          context,
+          PageRouteBuilder(
+            pageBuilder: (context, animation, secondaryAnimation) {
+              return const MusicPlayer();
+            },
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
+              final tween = Tween(
+                begin: const Offset(0, 1),
+                end: Offset.zero,
+              ).chain(
+                CurveTween(
+                  curve: Curves.easeIn,
+                ),
+              );
+
+              final offsetAnimation = animation.drive(tween);
+
+              return SlideTransition(
+                position: offsetAnimation,
+                child: child,
+              );
+            },
+          ),
+        );
       },
       child: Stack(
         children: [
@@ -41,13 +62,16 @@ class MusicSlab extends ConsumerWidget {
               children: [
                 Row(
                   children: [
-                    Container(
-                      width: 48,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(4),
-                        image: DecorationImage(
-                          image: NetworkImage(currentSong.thumbnail_url),
-                          fit: BoxFit.cover,
+                    Hero(
+                      tag: 'music-image',
+                      child: Container(
+                        width: 48,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(4),
+                          image: DecorationImage(
+                            image: NetworkImage(currentSong.thumbnail_url),
+                            fit: BoxFit.cover,
+                          ),
                         ),
                       ),
                     ),
@@ -97,33 +121,32 @@ class MusicSlab extends ConsumerWidget {
             ),
           ),
           StreamBuilder(
-              stream: currentSongNotifierRead.audioPlayer?.positionStream,
-              builder: (context, snapShot) {
-                if (snapShot.connectionState == ConnectionState.waiting) {
-                  return const SizedBox();
-                }
+            stream: currentSongNotifierRead.audioPlayer?.positionStream,
+            builder: (context, snapShot) {
+              if (snapShot.connectionState == ConnectionState.waiting) {
+                return const SizedBox();
+              }
 
-                final position = snapShot.data;
-                final duration = currentSongNotifierRead.audioPlayer?.duration;
-                double silderValue = 0.0;
-                if (position != null && duration != null) {
-                  silderValue =
-                      position.inMilliseconds / duration.inMilliseconds;
-                }
-                return Positioned(
-                  bottom: 0,
-                  left: 10,
-                  child: Container(
-                    height: 4,
-                    width:
-                        silderValue * (MediaQuery.of(context).size.width - 32),
-                    decoration: BoxDecoration(
-                      color: Pallete.whiteColor,
-                      borderRadius: BorderRadius.circular(7),
-                    ),
+              final position = snapShot.data;
+              final duration = currentSongNotifierRead.audioPlayer?.duration;
+              double silderValue = 0.0;
+              if (position != null && duration != null) {
+                silderValue = position.inMilliseconds / duration.inMilliseconds;
+              }
+              return Positioned(
+                bottom: 0,
+                left: 10,
+                child: Container(
+                  height: 4,
+                  width: silderValue * (MediaQuery.of(context).size.width - 32),
+                  decoration: BoxDecoration(
+                    color: Pallete.whiteColor,
+                    borderRadius: BorderRadius.circular(7),
                   ),
-                );
-              }),
+                ),
+              );
+            },
+          ),
           Positioned(
             bottom: 0,
             left: 10,
