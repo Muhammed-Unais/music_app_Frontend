@@ -68,13 +68,18 @@ class _UploadSongsPageState extends ConsumerState<UploadSongsPage> {
               if (_formKey.currentState!.validate() &&
                   _selectedImage != null &&
                   _selectedAudio != null) {
-                ref.read(homeViewmodelProvider.notifier).uploadSongs(
+                await ref.read(homeViewmodelProvider.notifier).uploadSongs(
                       selctedSongFile: _selectedAudio!,
                       selectedThumbnailFile: _selectedImage!,
                       artist: _artistController.text,
                       songName: _songNameController.text,
                       color: _selectedColor,
                     );
+
+                _artistController.clear();
+                _songNameController.clear();
+                _selectedAudio = null;
+                _selectedImage = null;
               }
             },
             icon: const Icon(Icons.check),
