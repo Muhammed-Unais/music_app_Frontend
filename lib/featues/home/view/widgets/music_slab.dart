@@ -1,7 +1,11 @@
+import 'dart:developer';
+
 import 'package:client/core/provider/current_song_notifier.dart';
+import 'package:client/core/provider/current_user_notifier.dart';
 import 'package:client/core/theme/app_pallete.dart';
 import 'package:client/core/utils/utils.dart';
 import 'package:client/featues/home/view/widgets/music_player.dart';
+import 'package:client/featues/home/view_model/home_viewmodel.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -16,6 +20,10 @@ class MusicSlab extends ConsumerWidget {
         ref.read(currentSongNotifierProvider.notifier);
     final currentSong = currentSongNotifier?.$1;
     final isPlaying = currentSongNotifier?.$2;
+
+    final userFavorites = ref.watch(currentUserNotifierProvider.select(
+      (value) => value?.favorites,
+    ));
 
     if (currentSong == null) return const SizedBox();
     return GestureDetector(
@@ -105,8 +113,20 @@ class MusicSlab extends ConsumerWidget {
                 Row(
                   children: [
                     IconButton(
-                      onPressed: () {},
-                      icon: const Icon(CupertinoIcons.heart),
+                      onPressed: () async {
+                        await ref
+                            .read(homeViewmodelProvider.notifier)
+                            .favoriteSong(
+                              songId: currentSong.id,
+                            );
+                      },
+                      icon: userFavorites
+                                  ?.where((favSong) =>
+                                      favSong.song_id == currentSong.id)
+                                  .isEmpty ==
+                              true
+                          ? const Icon(CupertinoIcons.heart)
+                          : const Icon(CupertinoIcons.heart_fill),
                     ),
                     IconButton(
                       onPressed: currentSongNotifierRead.playPuaseSong,

@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:developer';
 import 'dart:io';
 
 import 'package:client/core/constants/server_constants.dart';
@@ -51,13 +50,11 @@ class HomeRepo {
       final res = await request.send();
 
       if (res.statusCode != 201) {
-        log(res.statusCode.toString());
         return Left(AppFailure(await res.stream.bytesToString()));
       }
 
       return Right(await res.stream.bytesToString());
     } catch (e) {
-      log(e.toString());
       return Left(AppFailure(e.toString()));
     }
   }
@@ -83,6 +80,67 @@ class HomeRepo {
 
       for (final map in resBodyMap) {
         songs.add(SongModel.fromMap(map));
+      }
+
+      return Right(songs);
+    } catch (e) {
+      return Left(AppFailure(e.toString()));
+    }
+  }
+
+  Future<Either<AppFailure, bool>> favoriteSong({
+    required String token,
+    required String songId,
+  }) async {
+    try {
+      final res = await http.post(
+          body: jsonEncode(
+            {
+              'song_id': songId,
+            },
+          ),
+          Uri.parse('${ServerConstant.serverURL}/song/favorite'),
+          headers: {
+            'Content-Type': 'application/json',
+            'x-auth-token': token,
+          });
+
+      var resBodyMap = jsonDecode(res.body);
+
+      if (res.statusCode != 200) {
+        resBodyMap = resBodyMap as Map<String, dynamic>;
+        return Left(AppFailure(resBodyMap['detail']));
+      }
+      resBodyMap = resBodyMap['message'];
+
+      return Right(resBodyMap);
+    } catch (e) {
+      return Left(AppFailure(e.toString()));
+    }
+  }
+
+  Future<Either<AppFailure, List<SongModel>>> getFavoriteSongs({
+    required String token,
+  }) async {
+    try {
+      final res = await http.get(
+          Uri.parse('${ServerConstant.serverURL}/song/list/favorites'),
+          headers: {
+            'Content-Type': 'application/json',
+            'x-auth-token': token,
+          });
+      var resBodyMap = jsonDecode(res.body);
+
+      if (res.statusCode != 200) {
+        resBodyMap = resBodyMap as Map<String, dynamic>;
+        return Left(AppFailure(resBodyMap['detail']));
+      }
+      resBodyMap = resBodyMap as List;
+
+      List<SongModel> songs = [];
+
+      for (final map in resBodyMap) {
+        songs.add(SongModel.fromMap(map['song']));
       }
 
       return Right(songs);

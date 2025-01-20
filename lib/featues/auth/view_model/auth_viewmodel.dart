@@ -76,6 +76,8 @@ class AuthViewmodel extends _$AuthViewmodel {
     state = const AsyncValue.loading();
     final token = _authLocalRepository.getToken();
 
+    print(token);
+
     if (token != null) {
       try {
         final res =

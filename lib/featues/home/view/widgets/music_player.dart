@@ -4,6 +4,7 @@ import 'package:client/core/provider/current_song_notifier.dart';
 import 'package:client/core/theme/app_pallete.dart';
 import 'package:client/core/utils/utils.dart';
 import 'package:client/featues/home/model/song_model.dart';
+import 'package:client/featues/home/view_model/home_viewmodel.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -64,7 +65,7 @@ class MusicPlayer extends ConsumerWidget {
               flex: 4,
               child: Column(
                 children: [
-                  _songNameArtAndFavoriteButton(currentSong),
+                  _songNameArtAndFavoriteButton(currentSong, ref),
                   const SizedBox(height: 15),
                   _musicSlider(context, currentSongNotifier),
                   const SizedBox(height: 15),
@@ -225,7 +226,7 @@ class MusicPlayer extends ConsumerWidget {
     });
   }
 
-  Widget _songNameArtAndFavoriteButton(SongModel? currentSong) {
+  Widget _songNameArtAndFavoriteButton(SongModel? currentSong, WidgetRef ref) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -251,7 +252,11 @@ class MusicPlayer extends ConsumerWidget {
           ],
         ),
         IconButton(
-          onPressed: () {},
+          onPressed: () async {
+            await ref.read(homeViewmodelProvider.notifier).favoriteSong(
+                  songId: currentSong?.id ?? '',
+                );
+          },
           icon: const Icon(
             CupertinoIcons.heart,
             color: Pallete.whiteColor,

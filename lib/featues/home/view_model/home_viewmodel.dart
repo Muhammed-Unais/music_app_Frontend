@@ -24,6 +24,18 @@ Future<List<SongModel>> getAllSongs(Ref ref) async {
 }
 
 @riverpod
+Future<List<SongModel>> getFavSongs(Ref ref) async {
+  final token = ref.watch(currentUserNotifierProvider)!.token;
+  final res =
+      await ref.watch(homeRepositoryProvider).getFavoriteSongs(token: token);
+
+  return switch (res) {
+    Left(value: final l) => throw l.message,
+    Right(value: final r) => r
+  };
+}
+
+@riverpod
 class HomeViewmodel extends _$HomeViewmodel {
   late HomeRepo _homeRepo;
   late HomeLocalRepository _homeLocalRepository;
@@ -49,6 +61,27 @@ class HomeViewmodel extends _$HomeViewmodel {
         artist: artist,
         songName: songName,
         hexCode: rgbToHex(color),
+        token: ref.watch(authLocalRepositoryProvider).getToken() ?? "",
+      );
+
+      final val = switch (res) {
+        Left(value: final l) => state = AsyncValue.error(l, StackTrace.current),
+        Right(value: final r) => state = AsyncValue.data(r)
+      };
+
+      log(val.toString());
+    } catch (e) {
+      state = AsyncValue.error(e.toString(), StackTrace.current);
+    }
+  }
+
+  Future<void> favoriteSong({
+    required String songId,
+  }) async {
+    try {
+      state = const AsyncValue.loading();
+      final res = await _homeRepo.favoriteSong(
+        songId: songId,
         token: ref.watch(authLocalRepositoryProvider).getToken() ?? "",
       );
 
